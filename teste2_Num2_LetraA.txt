@@ -1,0 +1,18 @@
+U V W X Y Z
+a b
+V U
+V W
+X U
+V Y
+X Z
+Z Z
+U
+Z
+7
+ababb
+ababab
+abaababbbabababb
+aaabaabb
+ababbaababa
+abababab
+babbbaaa
