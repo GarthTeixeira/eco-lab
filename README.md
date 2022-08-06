@@ -1,1 +1,1 @@
-# Calculo_de_pi_vom_paralelismo
+# Cálculo de pi com programação paralela
