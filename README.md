@@ -12,6 +12,7 @@ Decompor o problema de decisão em critérios e subcritérios, para o objetivo i
 
 As alternativas terão uma matriz de comparação relativa a cada critério/subcritério e estes por sua vez terão uma matriz de comparação entre si relativas ao objetovivo principal ( no caso do subcritérios teram uma matriz de comparação entre si relativos a um critério )
 
+```mermaid
 flowchart TD
     A{Objetivo} --> B[Critério 1]
     A --> G[Critério 2]
@@ -25,4 +26,4 @@ flowchart TD
     C -->|One| D[Alternativa A]
     C -->|Two| E[Alternativa B]
     C -->|Three| F[Alternativa C]
-  
+```
