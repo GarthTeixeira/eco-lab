@@ -19,7 +19,7 @@ class AHP:
 
     
     @staticmethod
-    def Aprroximate(matrix, precision):
+    def Aproximate(matrix, precision):
         columnSum = matrix.sum(axis=0) # Soma das colunas
         matrix_norm = np.divide(matrix, columnSum) # Normaliza a matriz
         meanRows = matrix_norm.mean(axis=1) # Calcula a média das linhas
@@ -71,10 +71,10 @@ class AHP:
     
     def vetorPrioridadesLocais(self):
         vetorPrioridadesLocais = {}
-        for criterio in self.matrizesPreferencias:
+        for criterio in self.matrizesPreferencias:                              # Para cada critério escolher um metodo apropriado
             matriz = np.array(self.matrizesPreferencias[criterio])
             if self.method == 'aproximado':
-                prioridadesLocais = self.Aprroximate(matriz, self.precision)
+                prioridadesLocais = self.Aproximate(matriz, self.precision)
             elif self.method == 'geometrico':
                 prioridadesLocais = self.GeoMetricMean(matriz, self.precision)
             else:
@@ -82,7 +82,7 @@ class AHP:
                     prioridadesLocais = self.EigenValue(matriz, self.precision)
                     self.method = 'autovalor'
                 else :
-                    prioridadesLocais = self.Aprroximate(matriz, self.precision)
+                    prioridadesLocais = self.Aproximate(matriz, self.precision)
                     self.method = 'aproximado'
             
             vetorPrioridadesLocais[criterio] = prioridadesLocais
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                     [1/6, 1, 1/6],
                     [1/3, 6, 1]])
     precision = 3
-    print('Aproximado', AHP.Aprroximate(matriz, precision))
+    print('Aproximado', AHP.Aproximate(matriz, precision))
     print('Média Geométrica', AHP.GeoMetricMean(matriz, precision))
     print('Autovalor', AHP.EigenValue(matriz, precision))
     print('Indice de Consistência', AHP.ConsistencyIndex(matriz))
