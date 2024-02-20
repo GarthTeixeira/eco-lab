@@ -14,16 +14,25 @@ As alternativas terão uma matriz de comparação relativa a cada critério/subc
 
 ```mermaid
 flowchart TD
-    A{Objetivo} --> B[Critério 1]
-    A --> G[Critério 2]
-    A --> H[Critério 3]
-    H --> I[Subcritério 1]
-    H --> J[Subcritério 2]
-    B --> C{Alternativas}
-    G --> C
-    I --> C
-    J --> C
-    C -->|One| D[Alternativa A]
-    C -->|Two| E[Alternativa B]
-    C -->|Three| F[Alternativa C]
+    A{Objetivo} ---|"Matriz \n Criterio x Objetivo"| B[Critério 1]
+    A ---|"Matriz \n Criterio x Objetivo"| G[Critério 2]
+    A ---|"Matriz \n Criterio x Objetivo"| H[Critério 3]
+    H ---|"Matriz \n Subcriterio x Criterio"| I[Subcritério 1]
+    H ---|"Matriz \n Subcriterio x Criterio"| J[Subcritério 2]
+    B ---|"Matriz \n Criterio x Alternativas"| C{Alternativas}
+    G ---|"Matriz \n Criterio x Alternativas"|K{Alternativas}
+    I ---|"Matriz \n Criterio x Alternativas"| L{Alternativas}
+    J ---|"Matriz \n Criterio x Alternativas"| M{Alternativas}
+    C ---D[Alternativa A]
+    C ---E[Alternativa B]
+    C ---F[Alternativa C]
+    K ---N[Alternativa A]
+    K ---O[Alternativa B]
+    K ---P[Alternativa C]
+    L ---Q[Alternativa A]
+    L ---R[Alternativa B]
+    L ---S[Alternativa C]
+    M ---T[Alternativa A]
+    M ---U[Alternativa B]
+    M ---V[Alternativa C]
 ```
