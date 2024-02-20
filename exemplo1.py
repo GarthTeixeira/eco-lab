@@ -1,4 +1,5 @@
 from AHP import AHP;
+from matplotlib import pyplot as plt
 
 exemplo = AHP(
     method='geometrico',
@@ -42,3 +43,6 @@ exemplo = AHP(
 
 resultado = exemplo.Resultado();
 print(resultado)
+plt.bar(resultado.keys(),resultado.values())
+plt.ylabel('Prioridade')
+plt.show()

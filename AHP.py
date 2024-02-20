@@ -92,6 +92,8 @@ class AHP:
             if self.log:
                 if(criterio == 'criterios'):
                     print('\nPrioridades locais critérios x objetivo :\n', prioridadesLocais)
+                elif(criterio in self.subCriterios):
+                    print('\nPrioridades locais subcritérios x critério ' + criterio + ':\n', prioridadesLocais)
                 else:
                     print('\nPrioridades locais alternativas x critério ' + criterio + ':\n', prioridadesLocais)
                 print('Soma das prioridades locais: ', np.round(np.sum(prioridadesLocais), self.precision))
@@ -126,7 +128,7 @@ class AHP:
         return dict(zip(self.alternativas, prioridades))
 
     
-if __name__ == '__main__':
+if __name__ == '__main__':                            # Teste para cada método
     matriz = np.array([[1, 6, 3],
                     [1/6, 1, 1/6],
                     [1/3, 6, 1]])
