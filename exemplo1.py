@@ -1,28 +1,44 @@
 from AHP import AHP;
 
-
-
-exemple = AHP(
-    metodo = 'aproximado',
-    precisao = 3,
-    alternativas = ['A', 'B', 'C'],
-    criterios = ['C1', 'C2', 'C3'],
-    subCriterios = {},
-    mateizesPreferencias = {
-        'C1': [
-            [1, 6, 3],
-            [1/6, 1, 1/6],
-            [1/3, 6, 1]
+exemplo = AHP(
+    method='geometrico',
+    precisao=3,
+    alternativas=['Tom', 'Dick', 'Harry'],
+    criterios=['Experiência', 'Educação', 'Carisma', 'Idade'],
+    subCriterios={},
+    matrizesPreferencias={
+        'Experiência': [
+            [1, 1 / 4, 4],
+            [4, 1, 9],
+            [1 / 4, 1 / 9, 1]
         ],
-        'C2': [
-            [1, 1/3, 1/5],
-            [3, 1, 1/3],
-            [5, 3, 1]
+        'Educação': [
+            [1, 3, 1 / 5],
+            [1 / 3, 1, 1 / 7],
+            [5, 7, 1]
         ],
-        'C3': [
-            [1, 1, 3],
-            [1, 1, 3],
-            [1/3, 1/3, 1]
+        'Carisma': [
+            [1, 5, 9],
+            [1 / 5, 1, 4],
+            [1 / 9, 1 / 4, 1]
+        ],
+        'Idade': [
+            [1, 1 / 3, 5],
+            [3, 1, 9],
+            [1 / 5, 1 / 9, 1]
+        ],
+        'criterios': [
+            [1, 4, 3, 7],
+            [1 / 4, 1, 1 / 3, 3],
+            [1 / 3, 3, 1, 5],
+            [1 / 7, 1 / 3, 1 / 5, 1]
         ]
-    }
+    },
+    log=True
 )
+
+
+#exemplo.vetorPrioridadesLocais()
+
+resultado = exemplo.Resultado();
+print(resultado)

@@ -1,17 +1,18 @@
 #//class AHP (AnalyticHierachyProcess)
 
 import numpy as np
-import pandas as pd
 
 class AHP:
-    def __init__(self, criteria, data, method, log = False):
-        self.precision = 3
-        self.method = method
-        self.criteria = criteria
-        self.data = data
-        self.n = len(self.criteria)
-        self.nAlternatives = len(self.data)
-        self.nCriteria = len(self.criteria)
+    def __init__(self, criterios,subCriterios, alternativas, matrizesPreferencias , method, log = False, precisao = 3):
+        self.method = method                                # Método de cálculo
+        self.precision = precisao                           # Precisão
+        self.criterios = criterios                          # Lista de critérios
+        self.subCriterios = subCriterios                    # Subcritérios
+        self.alternativas = alternativas                    # Lista de alternativas
+        self.matrizesPreferencias = matrizesPreferencias    # Matrizes de preferências
+        
+        self.nAlternatives = len(self.alternativas)
+        self.nCriterios = len(self.criterios)
         self.log = log
 
         self.prioridadesGlobais = []
@@ -74,24 +75,29 @@ class AHP:
             matriz = np.array(self.matrizesPreferencias[criterio])
             if self.method == 'aproximado':
                 prioridadesLocais = self.Aprroximate(matriz, self.precision)
-            elif self.method == 'mediaGeometrica':
+            elif self.method == 'geometrico':
                 prioridadesLocais = self.GeoMetricMean(matriz, self.precision)
             else:
                 if matriz.shape[0] and matriz.shape[1] > 2:
                     prioridadesLocais = self.EigenValue(matriz, self.precision)
+                    self.method = 'autovalor'
                 else :
                     prioridadesLocais = self.Aprroximate(matriz, self.precision)
+                    self.method = 'aproximado'
             
             vetorPrioridadesLocais[criterio] = prioridadesLocais
 
             lambdaMax, ic, rc = self.ConsistencyIndex(matriz)
 
             if self.log:
-                print('\nPrioridades locais do criterio' + criterio + ':\n', prioridadesLocais)
+                if(criterio == 'criterios'):
+                    print('\nPrioridades locais critérios x objetivo :\n', prioridadesLocais)
+                else:
+                    print('\nPrioridades locais alternativas x critério ' + criterio + ':\n', prioridadesLocais)
                 print('Soma das prioridades locais: ', np.round(np.sum(prioridadesLocais), self.precision))
                 print('Lambda Max: ', lambdaMax)
                 print('Indice de Consistencia ' + criterio + ':', np.round(ic,self.precision))
-                print('Razão de Consistencia ' + criterio + ':', np.round(rc,self.precision))
+                print('Razão de Consistencia ' + criterio + ':', np.round(rc,self.precision), '(Cosistente)' if rc < 0.1 else '(Inconsistente)')
         
         return vetorPrioridadesLocais
     
@@ -104,14 +110,20 @@ class AHP:
             if criterio in self.subCriterios:
                 self.vetorPrioridadesGlobais(prioridades, prioridade_global, self.subCriterios[criterio])
             else:
-                self.prioridadeGlobais.append(prioridade_global)
+                self.prioridadesGlobais.append(prioridade_global)
             
             if self.log:
                 print('\nPrioridades globais do criterio ' + criterio + ':\n', prioridade_global)
                 print('Soma das prioridades globais: ', np.round(np.sum(prioridade_global), self.precision))
 
         return self.prioridadesGlobais
+    
+    def Resultado(self):
+        prioridades = self.vetorPrioridadesLocais()
+        self.vetorPrioridadesGlobais(prioridades, prioridades['criterios'], self.criterios)
+        prioridades = np.array(self.prioridadesGlobais).sum(axis=0).round(self.precision)
 
+        return dict(zip(self.alternativas, prioridades))
 
     
 if __name__ == '__main__':
