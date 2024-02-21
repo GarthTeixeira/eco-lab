@@ -5,9 +5,8 @@ exemplo = AHP(
     method='geometrico',
     precisao=3,
     alternativas=['Tom', 'Dick', 'Harry'],
-    criterios=['Experiência', 'Educação', 'Carisma', 'Idade'],
-    subCriterios={},
-    matrizesPreferencias={
+    dicionarioCritetiosSubCriterios={},
+    dicionarioCriteriosAlternativas={
         'Experiência': [
             [1, 1 / 4, 4],
             [4, 1, 9],
@@ -27,14 +26,14 @@ exemplo = AHP(
             [1, 1 / 3, 5],
             [3, 1, 9],
             [1 / 5, 1 / 9, 1]
-        ],
-        'criterios': [
-            [1, 4, 3, 7],
-            [1 / 4, 1, 1 / 3, 3],
-            [1 / 3, 3, 1, 5],
-            [1 / 7, 1 / 3, 1 / 5, 1]
         ]
     },
+    matrizObjetivoCriterios = [
+        [1, 4, 3, 7],
+        [1 / 4, 1, 1 / 3, 3],
+        [1 / 3, 3, 1, 5],
+        [1 / 7, 1 / 3, 1 / 5, 1]
+    ],
     log=True
 )
 

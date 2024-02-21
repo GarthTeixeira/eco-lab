@@ -7,18 +7,17 @@ escolher_melhor_carro = AHP(
     method='arpoximado',
     precisao=3,
     alternativas=['Accord Sedan', 'Accord Hybrid', 'Pilot', 'CR-V', 'Element', 'Odyssey'],
-    criterios=['cost', 'safety', 'style', 'capacity'],
-    subCriterios={
+    dicionarioCritetiosSubCriterios={
         'cost': ['Purchase Price', 'Fuel Costs', 'Maintenance Costs', 'Resale Value'],
         'capacity': ['Cargo Capacity', 'Passenger Capacity']
     },
-    matrizesPreferencias={
-        'criterios': [
+    matrizObjetivoCriterios = [
             [1, 3, 7, 3],
             [1 / 3, 1, 9, 1],
             [1 / 7, 1 / 9, 1, 1 / 7],
             [1 / 3, 1, 7, 1]
-        ],
+    ],
+    dicionarioCriteriosAlternativas={
         'cost': [
             [1, 2, 5, 3],
             [1 / 2, 1, 2, 2],

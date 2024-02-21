@@ -3,19 +3,33 @@
 import numpy as np
 
 class AHP:
-    def __init__(self, criterios,subCriterios, alternativas, matrizesPreferencias , method, log = False, precisao = 3):
-        self.method = method                                # Método de cálculo
-        self.precision = precisao                           # Precisão
-        self.criterios = criterios                          # Lista de critérios
-        self.subCriterios = subCriterios                    # Subcritérios
-        self.alternativas = alternativas                    # Lista de alternativas
-        self.matrizesPreferencias = matrizesPreferencias    # Matrizes de preferências
+    def __init__(self, dicionarioCritetiosSubCriterios, alternativas, dicionarioCriteriosAlternativas, matrizObjetivoCriterios , method, log = False, precisao = 3):
+        self.method = method                                                        # Método de cálculo
+        self.precision = precisao                                                   # Precisão
+        self.criterios = self.__recuperaCriterios(dicionarioCriteriosAlternativas,dicionarioCritetiosSubCriterios)  # Lista de critérios
+        self.dicionarioCriteriosSubCriterios = dicionarioCritetiosSubCriterios                                            # Subcritérios
+        self.alternativas = alternativas                                            # Lista de alternativas
+        self.matrizesPreferencias = self.__criaMatrizPreferencias(
+            dicionarioCriteriosAlternativas,matrizObjetivoCriterios)                # Matrizes de preferências
         
         self.nAlternatives = len(self.alternativas)
         self.nCriterios = len(self.criterios)
         self.log = log
 
         self.prioridadesGlobais = []
+
+    def __criaMatrizPreferencias(self, dicionarioCriteriosAlternativas, matrizObjetivoCriterios):
+        matrizesPreferencias = dicionarioCriteriosAlternativas
+        matrizesPreferencias['criterios'] = matrizObjetivoCriterios
+        return matrizesPreferencias
+
+    
+    def __recuperaCriterios(self, dicionarioCriteriosAlternativas, dicionarioCritetiosSubCriterios):
+        criterios = list(dicionarioCriteriosAlternativas.keys())
+        if len(dicionarioCritetiosSubCriterios) != 0:
+            subCriterios = list(sum(dicionarioCritetiosSubCriterios.values(),[]))
+            criterios = [criterioDaLista for criterioDaLista in criterios if criterioDaLista not in subCriterios]
+        return criterios
 
     
     @staticmethod
@@ -92,7 +106,7 @@ class AHP:
             if self.log:
                 if(criterio == 'criterios'):
                     print('\nPrioridades locais critérios x objetivo :\n', prioridadesLocais)
-                elif(criterio in self.subCriterios):
+                elif(criterio in self.dicionarioCriteriosSubCriterios):
                     print('\nPrioridades locais subcritérios x critério ' + criterio + ':\n', prioridadesLocais)
                 else:
                     print('\nPrioridades locais alternativas x critério ' + criterio + ':\n', prioridadesLocais)
@@ -109,8 +123,8 @@ class AHP:
             prioridade_local = prioridades[criterio]
             prioridade_global = np.round(peso * prioridade_local, self.precision)
 
-            if criterio in self.subCriterios:
-                self.vetorPrioridadesGlobais(prioridades, prioridade_global, self.subCriterios[criterio])
+            if criterio in self.dicionarioCriteriosSubCriterios:
+                self.vetorPrioridadesGlobais(prioridades, prioridade_global, self.dicionarioCriteriosSubCriterios[criterio])
             else:
                 self.prioridadesGlobais.append(prioridade_global)
             
