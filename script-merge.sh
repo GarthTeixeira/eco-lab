@@ -9,7 +9,7 @@ repos=(
   "repo5 git@github.com:GarthTeixeira/encontrarMaioresNumerosComMPI.git"
   "repo7 git@github.com:GarthTeixeira/AnalisadorSintaticoLexico.git"
   "repo8 git@github.com:GarthTeixeira/BinaryTreeExperiment.git"
-  "repo8 git@github.com:GarthTeixeira/AHP_Practices.git"
+  "repo0 git@github.com:GarthTeixeira/AHP_Practices.git"
 )
 
 for repo in "${repos[@]}"; do

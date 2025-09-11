@@ -1,5 +1,5 @@
 # coding=UTF-8
-from AHP import AHP
+from ahp.AHP import AHP
 from matplotlib import pyplot as plt
 
 # https://en.wikipedia.org/wiki/Analytic_hierarchy_process_%E2%80%93_car_example

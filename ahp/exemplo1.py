@@ -1,4 +1,4 @@
-from AHP import AHP;
+from ahp.AHP import AHP;
 from matplotlib import pyplot as plt
 
 exemplo = AHP(
