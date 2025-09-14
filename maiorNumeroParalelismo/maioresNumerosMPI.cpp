@@ -9,18 +9,18 @@ using namespace std;
 
 void achaOsDoisMaiores(int * numeros,int &maior1,int &maior2, int tam){
 	for(int i = 0; i < tam; i++ ){
-			if(numeros[i] > maior1){
-				if(maior1> maior2){
-					maior2=maior1;
-				}
-				maior1=numeros[i];
+		if(numeros[i] > maior1){
+			if(maior1> maior2){
+				maior2=maior1;
 			}
-			if(maior1>=maior2 && numeros[i] != maior1){
-				if(numeros[i] > maior2){
-					maior2=numeros[i];
-				}
+			maior1=numeros[i];
+		}
+		if(maior1>=maior2 && numeros[i] != maior1){
+			if(numeros[i] > maior2){
+				maior2=numeros[i];
 			}
 		}
+	}
 }
 
 // Temporary array for slave process
@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
 {
     
    
-    int *a;
-    int *a_escravo;
+    int *a_main;
+    int *a_worker;
 	int pid, np, n,
 		elements_per_process,
 		n_elements_recieved;
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
         cout << "Entre com o tamanho do vetor: ";
 		
        	starttime = MPI_Wtime();
-        cin >> n;
+        n = atoi(argv[1]);
         a = new int[n];
 		elements_per_process = n / np;
         
@@ -129,17 +129,16 @@ int main(int argc, char* argv[])
 		printf("maior 2 : %d\n", maior2);
         printf("Levou %f segundos\n",endtime-starttime);
 		
-	}
-	// slave processes
-	else {
+	} else { 
+		// slave processes
 		MPI_Recv(&n_elements_recieved,
 				1, MPI_INT, 0, 0,
 				MPI_COMM_WORLD,
 				&status);
 
-		a_escravo = new int [n_elements_recieved];		// stores the received array segment
+		a_worker = new int [n_elements_recieved];		// stores the received array segment
 		// in local array a2
-		MPI_Recv(&a_escravo[0], n_elements_recieved,
+		MPI_Recv(&a_worker[0], n_elements_recieved,
 				MPI_INT, 0, 0,
 				MPI_COMM_WORLD,
 				&status);
@@ -148,7 +147,7 @@ int main(int argc, char* argv[])
         int maior1 = 0;
         int maior2 = 0;
 
-        achaOsDoisMaiores(a_escravo,maior1,maior2,n_elements_recieved);
+        achaOsDoisMaiores(a_worker,maior1,maior2,n_elements_recieved);
         
         int maiores[] = {maior1, maior2};
 
