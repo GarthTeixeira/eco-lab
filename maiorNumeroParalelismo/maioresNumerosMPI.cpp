@@ -1,163 +1,121 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <iostream>
-// size of array
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
-void achaOsDoisMaiores(int * numeros,int &maior1,int &maior2, int tam){
-	for(int i = 0; i < tam; i++ ){
-		if(numeros[i] > maior1){
-			if(maior1> maior2){
-				maior2=maior1;
-			}
-			maior1=numeros[i];
-		}
-		if(maior1>=maior2 && numeros[i] != maior1){
-			if(numeros[i] > maior2){
-				maior2=numeros[i];
-			}
-		}
-	}
+void achaOsDoisMaiores(int* numeros, int& maior1, int& maior2, int tam) {
+    for (int i = 0; i < tam; i++) {
+        if (numeros[i] > maior1) {
+            if (maior1 > maior2) {
+                maior2 = maior1;
+            }
+            maior1 = numeros[i];
+        }
+        if (maior1 >= maior2 && numeros[i] != maior1) {
+            if (numeros[i] > maior2) {
+                maior2 = numeros[i];
+            }
+        }
+    }
 }
 
-// Temporary array for slave process
+int main(int argc, char* argv[]) {
+    int process_id, processes_num;
+    int array_size = 0, elements_per_process, n_elements_received;
+    double start_time, end_time;
+    int* a_main = nullptr;
+    int* a_worker = nullptr;
 
+    MPI_Status status;
 
-int main(int argc, char* argv[])
-{
-    
-   
-    int *a_main;
-    int *a_worker;
-	int pid, np, n,
-		elements_per_process,
-		n_elements_recieved;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
+    MPI_Comm_size(MPI_COMM_WORLD, &processes_num);
 
-	double starttime, endtime;
+    // ✅ ler argumento do tamanho do vetor
+    if (process_id == 0) {
+        if (argc < 2) {
+            cerr << "Uso: mpirun -np <proc> ./programa <tamanho_vetor>\n";
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
+        array_size = atoi(argv[1]);
+        if (array_size <= 0) {
+            cerr << "Erro: tamanho do vetor deve ser > 0\n";
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
+    }
 
-	srand (time(NULL));
-	// np -> no. of processes
-	// pid -> process id
+    // ✅ Broadcast para todos os processos saberem o tamanho do vetor
+    MPI_Bcast(&array_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	MPI_Status status;
+    elements_per_process = array_size / processes_num;
 
-	// Creation of parallel processes
-	MPI_Init(&argc, &argv);
+    if (process_id == 0) {
+        start_time = MPI_Wtime();
 
-	// find out process ID,
-	// and how many processes were started
-	MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-	MPI_Comm_size(MPI_COMM_WORLD, &np);
+        a_main = new int[array_size];
+        srand(time(NULL));
+        for (int i = 0; i < array_size; i++) {
+            a_main[i] = rand() % 10000;
+        }
 
-	// master process
-	if (pid == 0) {
-		int index, i;
-        cout << "Entre com o tamanho do vetor: ";
-		
-       	starttime = MPI_Wtime();
-        n = atoi(argv[1]);
-        a = new int[n];
-		elements_per_process = n / np;
-        
+        // Distribui para os workers
+        for (int i = 1; i < processes_num; i++) {
+            int start = i * elements_per_process;
+            int count = (i == processes_num - 1) ? (array_size - start) : elements_per_process;
 
-         for(int i=0;i<n;i++)
-            a[i]=rand()%10000;
-        
-        
-         for(int i=0;i<n;i++)
-            cout<<"Elementos indice["<<i<<"] "<<a[i]<<endl;
-      
-		// check if more than 1 processes are run
-		if (np > 1) {
-			// distributes the portion of array
-			// to child processes to calculate
-			// their partial sums
-			for (i = 1; i < np - 1; i++) {
-				index = i * elements_per_process;      
-				MPI_Send(&elements_per_process,
-						1, MPI_INT, i, 0,
-						MPI_COMM_WORLD);
-				MPI_Send(&a[index],
-						elements_per_process,
-						MPI_INT, i, 0,
-						MPI_COMM_WORLD);
-			}
+            MPI_Send(&count, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&a_main[start], count, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
 
-			// last process adds remaining elements
-			index = i * elements_per_process;
-			int elements_left = n - index;
-			MPI_Send(&elements_left,
-					1, MPI_INT,
-					i, 0,
-					MPI_COMM_WORLD);
-			MPI_Send(&a[index],
-					elements_left,
-					MPI_INT, i, 0,
-					MPI_COMM_WORLD);
-		}
+        // Root process calcula sua parte
+        int maior1 = 0, maior2 = 0;
+        achaOsDoisMaiores(a_main, maior1, maior2, elements_per_process);
 
-        int maior1 = 0;
-        int maior2 = 0;
-		// master process add its own sub array
-        achaOsDoisMaiores(a,maior1,maior2,elements_per_process);
-		
-		int *maioresDosMaiores = new int [2*np];
+        vector<int> maioresDosMaiores(2 * processes_num);
+        maioresDosMaiores[0] = maior1;
+        maioresDosMaiores[1] = maior2;
 
-		maioresDosMaiores[0] = maior1;
-		maioresDosMaiores[1] = maior2;
-		// collects partial sums from other processes
-       int tmp[2];
-		for (i = 1; i < np; i++) {
-			MPI_Recv(&tmp, 2, MPI_INT,
-					MPI_ANY_SOURCE, 0,
-					MPI_COMM_WORLD,
-					&status);
-			int sender = status.MPI_SOURCE;
-			int index = i*2;
-			maioresDosMaiores[index] = tmp[0];
-			maioresDosMaiores[index+1] = tmp[1];
-		}
+        int tmp[2];
+        for (int i = 1; i < processes_num; i++) {
+            MPI_Recv(tmp, 2, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+            int idx = i * 2;
+            maioresDosMaiores[idx] = tmp[0];
+            maioresDosMaiores[idx + 1] = tmp[1];
+        }
 
-		maior1 = maior2 = 0;
+        maior1 = maior2 = 0;
+        achaOsDoisMaiores(maioresDosMaiores.data(), maior1, maior2, processes_num * 2);
 
-		achaOsDoisMaiores(maioresDosMaiores,maior1,maior2,np*2);
-		endtime   = MPI_Wtime();
-		printf("maior 1 : %d\n", maior1);
-		printf("maior 2 : %d\n", maior2);
-        printf("Levou %f segundos\n",endtime-starttime);
-		
-	} else { 
-		// slave processes
-		MPI_Recv(&n_elements_recieved,
-				1, MPI_INT, 0, 0,
-				MPI_COMM_WORLD,
-				&status);
+        end_time = MPI_Wtime();
 
-		a_worker = new int [n_elements_recieved];		// stores the received array segment
-		// in local array a2
-		MPI_Recv(&a_worker[0], n_elements_recieved,
-				MPI_INT, 0, 0,
-				MPI_COMM_WORLD,
-				&status);
+        cout << "Maior 1: " << maior1 << endl;
+        cout << "Maior 2: " << maior2 << endl;
+        cout << "Tempo: " << (end_time - start_time) << " segundos" << endl;
 
-		// calculates its partial sum
-        int maior1 = 0;
-        int maior2 = 0;
+        delete[] a_main;
+    } else {
+        // Worker process
+        MPI_Recv(&n_elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
 
-        achaOsDoisMaiores(a_worker,maior1,maior2,n_elements_recieved);
-        
-        int maiores[] = {maior1, maior2};
+        a_worker = new int[n_elements_received];
+        MPI_Recv(a_worker, n_elements_received, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
 
-		// sends the partial sum to the root process
-		MPI_Send(&maiores[0], 2, MPI_INT,0, 0, MPI_COMM_WORLD);
+        int maior1 = 0, maior2 = 0;
+        achaOsDoisMaiores(a_worker, maior1, maior2, n_elements_received);
 
-	}
+        int maiores[2] = {maior1, maior2};
+        MPI_Send(maiores, 2, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
-	// cleans up all MPI state before exit of process
-	MPI_Finalize();
+        delete[] a_worker;
+    }
 
-	return 0;
+    MPI_Finalize();
+    return 0;
 }

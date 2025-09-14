@@ -7,6 +7,25 @@
 
 using namespace std;
 
+class Parametros {
+    public:
+        int tamanho_vetor;
+        int numero_buscas;
+        int limite_inferior;
+        int limite_superior;
+
+        Parametros(int t, int n, int li, int ls) 
+            : tamanho_vetor(t), numero_buscas(n), limite_inferior(li), limite_superior(ls) {}
+
+        Parametros(char* argv[]) {
+            tamanho_vetor = atoi(argv[1]);
+            numero_buscas = atoi(argv[2]);
+            limite_inferior = atoi(argv[3]);
+            limite_superior = atoi(argv[4]);
+        }
+};
+
+
 int partition(int arr[], int low, int high) {
     int pivot = arr[high]; // escolhemos o último elemento como pivô
     int i = low - 1;       // índice do menor elemento
@@ -41,33 +60,31 @@ void criarArquivoDeSaidas(ofstream &arquivo){
     }
 }
 
+void registrarNumerosNoArquivo(Parametros params, vector<int> &numeros) {
+    ofstream arquivo;
+    criarArquivoDeSaidas(arquivo);
+    for (int i = 0; i < params.tamanho_vetor; i++) {
+        numeros[i] = params.limite_inferior + rand() % (params.limite_superior - params.limite_inferior + 1);
+        arquivo << numeros[i] << " ";
+    }
+    arquivo.close();
+}
+
 
 
 int main(int argc, char* argv[]) {
 
-    ofstream arquivo;
-    criarArquivoDeSaidas(arquivo);
+    Parametros params(argv);
 
-    int tamanho_vetor, numero_buscas, limite_inferior, limite_superor;
-
-    tamanho_vetor = atoi(argv[1]);
-    numero_buscas = atoi(argv[2]);
-    limite_inferior = atoi(argv[3]);
-    limite_superor = atoi(argv[4]);
-
-    vector<int> numeros(tamanho_vetor);
+    vector<int> numeros(params.tamanho_vetor);
     srand(time(NULL));
 
-    for (int i = 0; i < tamanho_vetor; i++) {
-        numeros[i] = limite_inferior + rand() % (limite_superor - limite_inferior + 1);
-        arquivo << numeros[i] << " ";
-    }
-    arquivo.close();
+    registrarNumerosNoArquivo(params, numeros);
 
     clock_t start = clock();
     quickSort(&numeros[0], 0, numeros.size() - 1);
 
-    for (int i = numeros.size() - 1; i >= numeros.size() - numero_buscas  ; i--){
+    for (int i = numeros.size() - 1; i >= numeros.size() - params.numero_buscas  ; i--){
         cout << numeros[i] << " ";
     }
 
