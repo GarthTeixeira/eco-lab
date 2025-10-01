@@ -27,21 +27,42 @@ limite_superior=10000
 if [ "$#" -ge 3 ]; then
     echo "Quantidade de números a serem encontrados: $3"
 
-    if [ "$1" -lt "$3" ]; then
+    numero_de_buscas=$3
+    limite_inferior=$4
+    limite_superior=$5
+
+    elementos_por_processo=$((tamanho_vetor/numero_processos))
+    
+    resto_elementos_por_processo=$((tamanho_vetor%numero_processos))
+
+    if [ "$resto_elementos_por_processo" -eq 0 ]; then
+        if [ "$elementos_por_processo" -lt "$numero_de_buscas" ]; then
+            echo "O número de processos é muito grande para o tamanho do vetor e a quantidade de números a serem encontrados."
+            echo "Elementos por processo ($tamanho_vetor / $numero_processos) = $elementos_por_processo"
+            exit 1
+        fi
+    else
+        if [ "$resto_elementos_por_processo" -lt "$numero_de_buscas" ]; then
+            echo "O número de processos é muito grande para o tamanho do vetor e a quantidade de números a serem encontrados."
+            echo "O resto de elementos por processo ($tamanho_vetor % $numero_processos) = $elementos_por_processo"
+            exit 1
+        fi
+    fi
+
+    echo "Elementos por processo: $elementos_por_processo"
+
+    if [ "$tamanho_vetor" -lt "$numero_de_buscas" ]; then
         echo "O tamanho do vetor deve ser maior ou igual à quantidade de números a serem encontrados."
         exit 1
     fi
 
-    if [ "$4" -ge "$5" ]; then
-        echo "Limite inferior ($4) deve ser menor que limite superior ($5)"
+    if [ "$limite_inferior" -ge "$limite_superior" ]; then
+        echo "Limite inferior ($limite_inferior) deve ser menor que limite superior ($limite_superior)."
         exit 1
     fi
 
-    echo "Faixa de números: $4 a $5"
+    echo "Faixa de números: $limite_inferior a $limite_superior"
 
-    numero_de_buscas=$3
-    limite_inferior=$4
-    limite_superior=$5
 fi
 
 g++ maioresNumerosSerial.cpp -o serial.out || { echo "❌ Erro ao compilar o programa serial"; exit 1; }
@@ -50,4 +71,6 @@ saida_array=($saida_string)
 
 tempo_serial=${saida_array[-1]}
 elementos_resultado=("${saida_array[@]:0:numero_de_buscas}")
+echo "✅ Programa serial executado com sucesso em $tempo_serial segundos."
+echo "Números encontrados (serial): ${elementos_resultado[*]}"
 
