@@ -28,6 +28,20 @@ mpirun -np 4 ./testeMPI
 - Substitua `4` pelo número de processos desejado.
 - Certifique-se de que o arquivo `testeMPI.cpp` está no mesmo diretório.
 
+**Rode os scripts**
 
+No conteúdo de `runAllAndCompare.sh` todos os scripts serão rodados.
+
+```bash
+runAllAndCompare.sh <tamanho_vetor> <numero_de_processos>
+```
+
+A quantidade de números a serem buscados por padrão é 2, os números serão sorteados, mas isso pode ser alterado com
+
+```bash
+runAllAndCompare.sh <tamanho_vetor> <numero_de_processos> <numro_de_buscas> <limite_inferior> <limite_superior>
+```
+
+**Documentação MPI**
 
 [https://www.open-mpi.org/]
