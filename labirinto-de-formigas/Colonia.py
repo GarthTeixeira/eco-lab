@@ -3,136 +3,118 @@ import copy
 import queue
 import pygame
 
-pygame.init() #InniciaPygame
+pygame.init()   #Innicia Pygame
 
+NC=30           #Número de Cíclos
+NF=5            #Número de Formigas 
+px = 3          #Tamanho do pixel
 
-NC=30       #Número de Cíclos
-NF=5       #Número de Formigas 
-px = 3      #Tamanho do pixel
+FeromInit=125   #Valor inicial de feromônio
+FeromMin=50     #Valor minimo de ferômonio
+FeromMax=300    #Valor maximo de feromônio
+FeromRate=9     #Taxa de feromônio
+EvapoRate=4     #Taxa de evaporação
+Plus = 2        #Bonificação para caminhos menores
 
-FeromInit=125 #Valor inicial de feromônio
-FeromMin=50  #Valor minimo de ferômonio
-FeromMax=300  #Valor maximo de feromônio
-FeromRate=9   #Taxa de feromônio
-EvapoRate=4   #Taxa de evaporação
-Plus = 2      #Bonificação para caminhos menores
-
-#-------Funções da Formiga-------------------
+# ------------------ Formiga ------------------
 
 class Ant:
 
-    
-    def __init__(self,origem,objetivo):
+    def __init__(self,origin,objective):
         
-        self.posJ=origem[0]
-        self.posI=origem[1]
-        self.ObjetivoJ=objetivo[0]
-        self.ObjetivoI=objetivo[1]
+        self.posJ=origin[0]             # Posição da formiga na linha da matriz
+        self.posI=origin[1]             # Posição da formiga na coluna da matriz
+        self.ObjetivoJ=objective[0]
+        self.ObjetivoI=objective[1]
         self.PosDispo=[]
         self.Caminho=[]
         self.iteracao=0
         self.no=[]
-
         self.Caminho.append([self.posJ,self.posI])
 
-    def come(self):
-        while(self.Caminho[-1] is not self.no[-1] ):
+    def eat(self):
+        while self.no and self.Caminho and self.Caminho[-1] != self.no[-1]:
             self.Caminho.pop()
-        self.posJ=self.Caminho[-1][0]
-        self.posI=self.Caminho[-1][1]
-        if(self.fechado):
-            self.no.pop()
-        
+        if self.Caminho:
+            self.posJ, self.posI = self.Caminho[-1]
+        if self.closedWay():
+            if self.no:
+                self.no.pop()
        
-    def reeset(self,origem):
-        self.posJ=origem[0]
-        self.posI=origem[1]
-        self.PosDispo.clear()
-        self.Caminho.clear()
-        self.no=[]
-        self.Caminho.append([self.posJ,self.posI])
+    def reeset(self,origin):
+        self.posJ = origin[0]
+        self.posI = origin[1]
+        self.PosDispo = []
+        self.no = []
+        self.Caminho = [[self.posJ,self.posI]]
         
-    def andar(self,proximo):
-        self.posJ=proximo[0]
-        self.posI=proximo[1]
+    def walk(self,next_pos):
+        self.posJ = next_pos[0]
+        self.posI = next_pos[1]
         self.Caminho.append([self.posJ,self.posI])
         self.PosDispo.clear()
            
-
     def find(self):
-        if((self.posI == self.ObjetivoI) and (self.posJ == self.ObjetivoJ)):
-            return True 
-        else:
-            return False
+        return (self.posI == self.ObjetivoI) and (self.posJ == self.ObjetivoJ)
+
+    def _inside(self, M, i, j):
+        return 0 <= i < len(M) and 0 <= j < len(M[0])
          
-    def caminhoLivre(self,matrix):
-       
-        if(matrix.PathMatrix[self.posI][self.posJ+1]==0 or matrix.PathMatrix[self.posI][self.posJ+1]==3):
-            self.PosDispo.append([self.posJ+1,self.posI])
-
-        if(matrix.PathMatrix[self.posI][self.posJ-1]==0 or matrix.PathMatrix[self.posI][self.posJ-1]==3):
-            self.PosDispo.append([self.posJ-1,self.posI])
-
-        if(matrix.PathMatrix[self.posI+1][self.posJ]==0 or  matrix.PathMatrix[self.posI+1][self.posJ]==3):
-            self.PosDispo.append([self.posJ,self.posI+1])
-
-        if(matrix.PathMatrix[self.posI-1][self.posJ]==0 or matrix.PathMatrix[self.posI-1][self.posJ]==3):
-            self.PosDispo.append([self.posJ,self.posI-1])
-            
-        if( [self.ObjetivoJ,self.ObjetivoI] in self.PosDispo):
-            self.PosDispo.clear()
-            self.posI=self.ObjetivoI
-            self.posJ=self.ObjetivoJ
-            self.Caminho.append([self.posJ,self.posI])
-            return
-
-    def fechado(self):
-        if (len(self.PosDispo)==0 and (not self.find())):
-            return True
-        else: 
-            return False
+    def availableWay(self,matrix):
+        
+        self.PosDispo.clear()
+        M= matrix.PathMatrix
+        
+        neighbors = [(1,0), (-1,0), (0,1), (0,-1)]
+        for di, dj in neighbors:
+            ni, nj = self.posI + di, self.posJ + dj
+            if self._inside(M, ni, nj) and (M[ni][nj] in (0, 3)):
                 
-    def choose(self,mapa):
-        if(not self.find()):
-            feromonios = []
-            sum=0
+                    if len(self.Caminho) >= 2 and [nj, ni] == self.Caminho[-2]:
+                        continue  # Evita voltar para a posição anterior imediata
+                    if [nj, ni] not in self.Caminho:
+                        self.PosDispo.append([nj, ni])
+        
+        if [self.ObjetivoJ,self.ObjetivoI] in self.PosDispo:
+            self.PosDispo.clear()
+            self.walk([self.ObjetivoJ,self.ObjetivoI])
+            return       
 
-            if(len(self.PosDispo)==1):
-                self.andar(self.PosDispo[0])
-
-            elif(len(self.PosDispo)==2):
-                self.no.append(self.Caminho[-1])
-                for pnt in self.PosDispo:
-                    feromonios.append(mapa.PheromonMatrix[pnt[1]][pnt[0]])
-                    sum+=mapa.PheromonMatrix[pnt[1]][pnt[0]]
-
-                val=random.randint(1,sum)
-                intervalo1=feromonios[0]
-                intervalo2=sum
-                if(val in range(1,intervalo1+1)):
-                    self.andar(self.PosDispo[0])
-                else:
-                    self.andar(self.PosDispo[1])
-            else:              
-                self.no.append(self.Caminho[-1])
-
-                for pnt in self.PosDispo:
-                    feromonios.append(mapa.PheromonMatrix[pnt[1]][pnt[0]])
-                    sum+=mapa.PheromonMatrix[pnt[1]][pnt[0]]
-
-                val=random.randint(1,sum)
-                intervalo1=feromonios[0]
-                intervalo2=feromonios[1]+feromonios[0]
-
-                if(val in range(1,intervalo1+1)):
-                    self.andar(self.PosDispo[0])
-                elif(val in range(intervalo1+1, intervalo2 + 1 ) ):
-                    self.andar(self.PosDispo[1])
-                else:
-                     self.andar(self.PosDispo[2])
-
+    def closedWay(self):
+        return (len(self.PosDispo)==0 and (not self.find()))
     
+    def _add_fork_to_node(self):
+        if(len(self.PosDispo)>1):
+            self.no.append(self.Caminho[-1])
+            
+    def _choose_by_pheromone(self, maze):
+        weights = []
+        for pnt in self.PosDispo:
+            w = max(maze.getFeromon(pnt), 1)  # Evita pesos zero
+            weights.append(w)
+        
+        s = sum(weights)
+        if s <= 0:
+            self.walk(random.choice(self.PosDispo))
+            return
+        
+        r = random.uniform(0, s)
+        acc = 0
+        for pnt, w in zip(self.PosDispo, weights):
+            acc += w
+            if r <= acc:
+                self.walk(pnt)
+                return
+                
+                
+    def choose(self, maze):
+        if self.find() or not self.PosDispo:
+            return
+        
+        self._add_fork_to_node()
+        self._choose_by_pheromone(maze)
 
+        
 #-------Funções do Labirinto-------------------
 
 class Labrinth:
@@ -250,7 +232,7 @@ def print_result(formiga,map,index):
         for  i in range(10):
             print(formiga.Caminho[i],end=" ")
 
-    if(formiga.fechado()):
+    if(formiga.closedWay()):
         print("Caminho da Formiga "+str(index) + " : "),
         print("Bateu")
         print("Posição:",end=" ")
@@ -307,17 +289,17 @@ for i in range(NC):
     Best = 0
 
     for m in  Colonia:
-        m.caminhoLivre(mapa)
+        m.availableWay(mapa)
         while(not m.find()):
             m.choose(mapa)
             PRINTA(m,mapa.PathMatrix,mapa.PheromonMatrix)
             mapa.Atualizapath(m)
-            m.caminhoLivre(mapa)
+            m.availableWay(mapa)
           
-            while (m.fechado()):
+            while (m.closedWay()):
                 print_result(m,mapa,Colonia.index(m))
-                m.come()
-                m.caminhoLivre(mapa)
+                m.eat()
+                m.availableWay(mapa)
         
         mapa.CleanTrail(m)
         m.iteracao+=1
