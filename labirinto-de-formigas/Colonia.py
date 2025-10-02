@@ -295,8 +295,7 @@ def PRINTA(formiga,m2,mferomonio):
         
 #Inicio do programa
 
-
-mapa = Labrinth("Colonia\LabirintoExemplo01.txt")
+mapa = Labrinth("./LabirintoExemplo01.txt")
 
 Colonia=[]
 CaminhosEcontrados=[]
@@ -336,16 +335,3 @@ for i in range(NC):
         
         mapa.EvaporaFerom()
         m.reeset(mapa.pnt_init)
-    
-
-
-
-
-
-
-
-            
-
-
-    
-        
